@@ -1,4 +1,3 @@
-
 class CeaserCipher:
 
     def encrypt(self, char, key, characters_list):

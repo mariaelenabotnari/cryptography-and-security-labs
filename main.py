@@ -1,138 +1,190 @@
 from Lab1 import CeaserCipher
 from Lab3 import PlayFair
+from Lab4 import DES
 
 if __name__ == '__main__':
-    # LABORATORY WORK 2
-    play_fair = PlayFair()
-    alphabet = [c for c in "AĂÂBCDEFGHIÎKLMNOPQRSȘTȚUVWXYZ"]
+
+    # LABORATORY WORK 3
+    des = DES()
 
     while True:
-        print("\nChoose an option:")
-        print("1. Encrypt with PlayFair")
-        print("2. Decrypt with PlayFair")
-        print("3. Exit")
-        print("=" * 70)
+        print("\nChoose number of rounds (1–16):")
+        rounds = input().strip()
 
-        option = input("\nYour choice (1-3): ").strip()
-
-        if option not in ["1", "2", "3"]:
-            print("\nError: Invalid option. Please choose 1, 2, or 3.")
+        if not rounds.isdigit():
+            print("Error: Please enter only numbers (no letters or symbols).")
             continue
 
-        option = int(option)
-
-        # ENCRYPTION
-        if option == 1:
-
-            # Input message
-            while True:
-                print("\nInput the message to encrypt:")
-                message = input().strip()
-                if not message:
-                    print("Error: Message cannot be empty.")
-                    continue
-                if not all(c.isalpha() or c.isspace() for c in message):
-                    print("Error: Message must contain only letters and spaces.")
-                    continue
-                break
-
-            # Input key
-            while True:
-                print("\nInput the encryption key (letters only, maximum 7 letters):")
-                key = input().strip()
-                if not key:
-                    print("Error: Key cannot be empty.")
-                    continue
-                if not key.isalpha():
-                    print("Error: Key must contain only letters.")
-                    continue
-                if len(key) > 7:
-                    print("Error: Key must have maximum 7 letters.")
-                    continue
-                break
-
-            # Step 1
-            step1 = play_fair.substitute_letters_in_string(message)
-            print(f"\n STEP 1: Convert to uppercase and replace J with I, remove spaces")
-            print(f"  Result: {step1}")
-
-            # Step 2
-            step2 = play_fair.split_string_into_digraphs(step1)
-            print(f"\n STEP 2: Split into pairs of 2 letters")
-            print(f"  Result: {step2}")
-
-            # Step 3
-            step3 = play_fair.handle_double_letters(step2)
-            step3_spaces = play_fair.split_string_into_digraphs(step3)
-            print(f"\n STEP 3: Handle double letters (insert Q, X, or Z between same letters)")
-            print(f"  Result: {step3_spaces}")
-
-            # Step 4
-            step4 = play_fair.handle_incomplete_pairs(step3)
-            print(f"\n STEP 4: Handle incomplete pairs (add extra letter if needed)")
-            print(f"  Result: {step4}")
-
-            # Step 5
-            print(f"\n STEP 5: Build Encryption Matrix from key")
-            print(f"  Key used: {key.upper()}")
-            encryption_matrix = play_fair.build_encryption_matrix(key, alphabet)
-
-            # Step 6
-            print(f"\n STEP 6: Encrypt the message using the matrix")
-            play_fair.encrypt_string(step4, encryption_matrix)
-
-        # DECRYPTION
-        elif option == 2:
-
-            # Input encrypted message
-            while True:
-                print("\nInput the encrypted message:")
-                encrypted_message = input().strip()
-                if not encrypted_message:
-                    print("Error: Encrypted message cannot be empty.")
-                    continue
-                encrypted_message_clean = encrypted_message.replace(" ", "")
-                if not encrypted_message_clean.isalpha():
-                    print("Error: Encrypted message must contain only letters.")
-                    continue
-                if len(encrypted_message_clean) % 2 != 0:
-                    print("Error: Encrypted message must have even number of letters.")
-                    continue
-                break
-
-            # Input key
-            while True:
-                print("\nInput the decryption key (letters only, maximum 7 letters):")
-                key = input().strip()
-                if not key:
-                    print("Error: Key cannot be empty.")
-                    continue
-                if not key.isalpha():
-                    print("Error: Key must contain only letters.")
-                    continue
-                if len(key) > 7:
-                    print("Error: Key must have maximum 7 letters.")
-                    continue
-                break
-
-            # Step 1
-            step1 = play_fair.split_string_into_digraphs(encrypted_message)
-            print(f"\n STEP 1: Split encrypted message into pairs")
-            print(f"  Result: {step1}")
-
-            # Step 2
-            print(f"\n STEP 2: Build Decryption Matrix from key")
-            print(f"  Key used: {key.upper()}")
-            encryption_matrix = play_fair.build_encryption_matrix(key, alphabet)
-
-            # Step 3
-            print(f"\n STEP 3: Decrypt the message using the matrix")
-            play_fair.decrypt_string(encrypted_message, encryption_matrix)
-
-        # EXIT
-        elif option == 3:
-            print("\nExiting...")
+        rounds = int(rounds)
+        if 1 <= rounds <= 16:
+            print(f"You chose {rounds} rounds.")
             break
+        else:
+            print("Error: Number must be between 1 and 16.")
+
+    print("\nSTEP 1")
+    binary_key = des.generate_key()
+    print("Randomly generated 56-bit binary key without the parity bits: ", binary_key)
+    hex_key = des.convert_binary_to_hex(binary_key)
+    print("K+ in hexadecimal form: ", hex_key)
+
+    print("\nSTEP 2")
+    print("K+ split into left half(C0) and right half(D0):")
+    C0, D0 = des.split_key_right_left_halves(binary_key)
+    print("C0: ", C0)
+    print("D0: ", D0)
+
+    print("\nSTEP 3")
+    print("\nShift table:")
+    shift_dictionary = des.display_shift_table()
+    pc2_table = des.display_pc_2_table()
+
+    C, D = C0, D0
+    for i in range(1, rounds + 1):
+        print("==============================================")
+        print(f"\nRound {i}:")
+        print(f"Left-shifting C{i-1} and D{i-1}:")
+        C, D = des.shift_right_left_half(i, C, D, shift_dictionary)
+        print(f"C{i}: ", C)
+        print(f"D{i}: ", D)
+        print(f"\nCombined C{i} and D{i}:", C + D)
+
+        des.permuted_choice_2(C, D, pc2_table)
+
+
+
+
+    # # LABORATORY WORK 2
+    # play_fair = PlayFair()
+    # alphabet = [c for c in "AĂÂBCDEFGHIÎKLMNOPQRSȘTȚUVWXYZ"]
+    #
+    # while True:
+    #     print("\nChoose an option:")
+    #     print("1. Encrypt with PlayFair")
+    #     print("2. Decrypt with PlayFair")
+    #     print("3. Exit")
+    #     print("=" * 70)
+    #
+    #     option = input("\nYour choice (1-3): ").strip()
+    #
+    #     if option not in ["1", "2", "3"]:
+    #         print("\nError: Invalid option. Please choose 1, 2, or 3.")
+    #         continue
+    #
+    #     option = int(option)
+    #
+    #     # ENCRYPTION
+    #     if option == 1:
+    #
+    #         # Input message
+    #         while True:
+    #             print("\nInput the message to encrypt:")
+    #             message = input().strip()
+    #             if not message:
+    #                 print("Error: Message cannot be empty.")
+    #                 continue
+    #             if not all(c.isalpha() or c.isspace() for c in message):
+    #                 print("Error: Message must contain only letters and spaces.")
+    #                 continue
+    #             break
+    #
+    #         # Input key
+    #         while True:
+    #             print("\nInput the encryption key (letters only, maximum 7 letters):")
+    #             key = input().strip()
+    #             if not key:
+    #                 print("Error: Key cannot be empty.")
+    #                 continue
+    #             if not key.isalpha():
+    #                 print("Error: Key must contain only letters.")
+    #                 continue
+    #             if len(key) > 7:
+    #                 print("Error: Key must have maximum 7 letters.")
+    #                 continue
+    #             break
+    #
+    #         # Step 1
+    #         step1 = play_fair.substitute_letters_in_string(message)
+    #         print(f"\n STEP 1: Convert to uppercase and replace J with I, remove spaces")
+    #         print(f"  Result: {step1}")
+    #
+    #         # Step 2
+    #         step2 = play_fair.split_string_into_digraphs(step1)
+    #         print(f"\n STEP 2: Split into pairs of 2 letters")
+    #         print(f"  Result: {step2}")
+    #
+    #         # Step 3
+    #         step3 = play_fair.handle_double_letters(step2)
+    #         step3_spaces = play_fair.split_string_into_digraphs(step3)
+    #         print(f"\n STEP 3: Handle double letters (insert Q, X, or Z between same letters)")
+    #         print(f"  Result: {step3_spaces}")
+    #
+    #         # Step 4
+    #         step4 = play_fair.handle_incomplete_pairs(step3)
+    #         print(f"\n STEP 4: Handle incomplete pairs (add extra letter if needed)")
+    #         print(f"  Result: {step4}")
+    #
+    #         # Step 5
+    #         print(f"\n STEP 5: Build Encryption Matrix from key")
+    #         print(f"  Key used: {key.upper()}")
+    #         encryption_matrix = play_fair.build_encryption_matrix(key, alphabet)
+    #
+    #         # Step 6
+    #         print(f"\n STEP 6: Encrypt the message using the matrix")
+    #         play_fair.encrypt_string(step4, encryption_matrix)
+    #
+    #     # DECRYPTION
+    #     elif option == 2:
+    #
+    #         # Input encrypted message
+    #         while True:
+    #             print("\nInput the encrypted message:")
+    #             encrypted_message = input().strip()
+    #             if not encrypted_message:
+    #                 print("Error: Encrypted message cannot be empty.")
+    #                 continue
+    #             encrypted_message_clean = encrypted_message.replace(" ", "")
+    #             if not encrypted_message_clean.isalpha():
+    #                 print("Error: Encrypted message must contain only letters.")
+    #                 continue
+    #             if len(encrypted_message_clean) % 2 != 0:
+    #                 print("Error: Encrypted message must have even number of letters.")
+    #                 continue
+    #             break
+    #
+    #         # Input key
+    #         while True:
+    #             print("\nInput the decryption key (letters only, maximum 7 letters):")
+    #             key = input().strip()
+    #             if not key:
+    #                 print("Error: Key cannot be empty.")
+    #                 continue
+    #             if not key.isalpha():
+    #                 print("Error: Key must contain only letters.")
+    #                 continue
+    #             if len(key) > 7:
+    #                 print("Error: Key must have maximum 7 letters.")
+    #                 continue
+    #             break
+    #
+    #         # Step 1
+    #         step1 = play_fair.split_string_into_digraphs(encrypted_message)
+    #         print(f"\n STEP 1: Split encrypted message into pairs")
+    #         print(f"  Result: {step1}")
+    #
+    #         # Step 2
+    #         print(f"\n STEP 2: Build Decryption Matrix from key")
+    #         print(f"  Key used: {key.upper()}")
+    #         encryption_matrix = play_fair.build_encryption_matrix(key, alphabet)
+    #
+    #         # Step 3
+    #         print(f"\n STEP 3: Decrypt the message using the matrix")
+    #         play_fair.decrypt_string(encrypted_message, encryption_matrix)
+    #
+    #     # EXIT
+    #     elif option == 3:
+    #         print("\nExiting...")
+    #         break
 
     # # LABORATORY WORK 1
     # ceaser_cipher = CeaserCipher()

@@ -2,8 +2,8 @@ import random
 class DES:
 
     def generate_key(self):
-        random_64_bit_number = random.getrandbits(56)
-        binary_key = format(random_64_bit_number, '056b')
+        random_56_bit_number = random.getrandbits(56)
+        binary_key = format(random_56_bit_number, '056b')
 
         return binary_key
 
